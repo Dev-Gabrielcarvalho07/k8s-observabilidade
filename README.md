@@ -204,4 +204,4 @@ Mostra os logs dos pods da aplicação (ex.: `Tarefa 3 criada ... - pod app-xxxx
 
 ## 👥 Integrantes
 
-- Gabriel Carvalho de Oliveira — [GitHub](https://github.com/Dev-Gabrielcarvalho07)
+- Gabriel Carvalho de Oliveira  e João Pedro Abdala — [GitHub](https://github.com/Dev-Gabrielcarvalho07)
