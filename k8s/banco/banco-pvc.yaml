@@ -1,0 +1,12 @@
+# Volume persistente: os dados do banco sobrevivem a reinicios do pod
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: banco-pvc
+  namespace: app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

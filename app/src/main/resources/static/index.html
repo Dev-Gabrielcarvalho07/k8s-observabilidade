@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tarefas - Kubernetes Lab</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #f1f5f9; margin: 0; padding: 32px; color: #0f172a; }
+  .card { max-width: 720px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+  h1 { margin: 0 0 4px; font-size: 1.6rem; }
+  .sub { color: #64748b; margin: 0 0 20px; }
+  .pod { background: #e0f2fe; color: #075985; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: .95rem; }
+  form { display: flex; gap: 8px; margin-bottom: 20px; }
+  input { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
+  button { padding: 10px 16px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font-size: 1rem; cursor: pointer; }
+  button.sec { background: #e2e8f0; color: #0f172a; padding: 6px 10px; font-size: .85rem; }
+  button.del { background: #fee2e2; color: #991b1b; padding: 6px 10px; font-size: .85rem; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; font-size: .95rem; }
+  th { color: #64748b; font-weight: 600; font-size: .8rem; text-transform: uppercase; }
+  .done { text-decoration: line-through; color: #94a3b8; }
+  .tag { font-family: monospace; font-size: .8rem; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+  .acoes { display: flex; gap: 6px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Gerenciador de Tarefas</h1>
+  <p class="sub">Spring Boot &middot; PostgreSQL &middot; Kubernetes (Minikube) &middot; OpenTelemetry</p>
+
+  <div class="pod">Esta página foi atendida pelo pod: <strong id="pod">...</strong></div>
+
+  <form id="form">
+    <input id="titulo" placeholder="Nova tarefa..." maxlength="200" required>
+    <button type="submit">Adicionar</button>
+  </form>
+
+  <table>
+    <thead><tr><th>#</th><th>Tarefa</th><th>Salva pelo pod</th><th>Criada em</th><th></th></tr></thead>
+    <tbody id="lista"></tbody>
+  </table>
+</div>
+
+<script>
+  const api = (url, opts) => fetch(url, Object.assign({ cache: 'no-store' }, opts));
+
+  async function carregarPod() {
+    const r = await api('/api/info');
+    document.getElementById('pod').textContent = (await r.json()).pod;
+  }
+
+  async function carregar() {
+    const r = await api('/api/tarefas');
+    const tarefas = await r.json();
+    const tbody = document.getElementById('lista');
+    tbody.innerHTML = '';
+    if (tarefas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#94a3b8">Nenhuma tarefa cadastrada.</td></tr>';
+      return;
+    }
+    for (const t of tarefas) {
+      const tr = document.createElement('tr');
+      const data = new Date(t.criada_em).toLocaleString('pt-BR');
+      tr.innerHTML =
+        '<td>' + t.id + '</td>' +
+        '<td class="' + (t.concluida ? 'done' : '') + '"></td>' +
+        '<td><span class="tag"></span></td>' +
+        '<td>' + data + '</td>' +
+        '<td class="acoes"><button class="sec">' + (t.concluida ? 'Reabrir' : 'Concluir') + '</button>' +
+        '<button class="del">Excluir</button></td>';
+      tr.children[1].textContent = t.titulo;
+      tr.querySelector('.tag').textContent = t.pod;
+      tr.querySelector('.sec').onclick = async () => { await api('/api/tarefas/' + t.id + '/concluir', { method: 'PUT' }); atualizar(); };
+      tr.querySelector('.del').onclick = async () => { await api('/api/tarefas/' + t.id, { method: 'DELETE' }); atualizar(); };
+      tbody.appendChild(tr);
+    }
+  }
+
+  function atualizar() { carregarPod(); carregar(); }
+
+  document.getElementById('form').onsubmit = async (e) => {
+    e.preventDefault();
+    const input = document.getElementById('titulo');
+    await api('/api/tarefas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titulo: input.value })
+    });
+    input.value = '';
+    atualizar();
+  };
+
+  atualizar();
+</script>
+</body>
+</html>

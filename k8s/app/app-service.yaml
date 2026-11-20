@@ -1,0 +1,17 @@
+# NodePort: expoe a aplicacao para fora do cluster e balanceia entre as 2 replicas
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  namespace: app
+  labels:
+    app: tarefas-app
+spec:
+  type: NodePort
+  selector:
+    app: tarefas-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30080

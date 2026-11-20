@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: app
+data:
+  # Conexao com o banco (DB_HOST = nome do Service do banco)
+  DB_HOST: banco-service
+  DB_PORT: "5432"
+  DB_NAME: tarefas
+  # OpenTelemetry: o agente Java envia os traces para o OTel Collector
+  OTEL_SERVICE_NAME: tarefas-app
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.monitoring.svc.cluster.local:4318
+  OTEL_TRACES_EXPORTER: otlp
+  # Metricas vao pelo Prometheus (actuator) e logs pelo stdout -> Collector -> Loki
+  OTEL_METRICS_EXPORTER: none
+  OTEL_LOGS_EXPORTER: none

@@ -1,0 +1,14 @@
+# ClusterIP: o banco fica acessivel apenas dentro do cluster
+apiVersion: v1
+kind: Service
+metadata:
+  name: banco-service
+  namespace: app
+spec:
+  type: ClusterIP
+  selector:
+    app: banco
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

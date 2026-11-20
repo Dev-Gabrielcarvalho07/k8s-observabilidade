@@ -1,0 +1,50 @@
+# Valores do chart prometheus-community/kube-prometheus-stack
+# Instala Prometheus + Grafana (+ kube-state-metrics e node-exporter)
+# Configuracao enxuta para rodar no Minikube de um notebook.
+
+alertmanager:
+  enabled: false
+
+# Componentes do control-plane que o Minikube nao expoe (evita alvos com erro)
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    retention: 1d
+    # Coleta ServiceMonitors de qualquer namespace (inclui o da aplicacao)
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 400Mi
+      limits:
+        memory: 1Gi
+
+grafana:
+  adminUser: admin
+  adminPassword: admin123
+  # Datasources extras (o Prometheus ja e adicionado automaticamente pelo chart)
+  additionalDataSources:
+    - name: Loki
+      uid: loki
+      type: loki
+      access: proxy
+      url: http://loki.monitoring.svc.cluster.local:3100
+    - name: Tempo
+      uid: tempo
+      type: tempo
+      access: proxy
+      url: http://tempo.monitoring.svc.cluster.local:3200
+      jsonData:
+        tracesToLogsV2:
+          datasourceUid: loki
+        nodeGraph:
+          enabled: true

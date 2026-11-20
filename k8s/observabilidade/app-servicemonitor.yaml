@@ -1,0 +1,15 @@
+# Faz o Prometheus coletar as metricas da aplicacao (/actuator/prometheus)
+# Aplicar DEPOIS do Helm, pois o tipo ServiceMonitor e criado pelo kube-prometheus-stack
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tarefas-app
+  namespace: app
+spec:
+  selector:
+    matchLabels:
+      app: tarefas-app
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s

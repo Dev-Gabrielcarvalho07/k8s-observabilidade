@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banco
+  namespace: app
+  labels:
+    app: banco
+spec:
+  replicas: 1
+  # Recreate: evita dois pods do banco usando o mesmo volume ao mesmo tempo
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: banco
+  template:
+    metadata:
+      labels:
+        app: banco
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: banco-secret
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          volumeMounts:
+            - name: dados
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: dados
+          persistentVolumeClaim:
+            claimName: banco-pvc
